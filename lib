@@ -1,0 +1,159 @@
+
+local UIS = game:GetService("UserInputService")
+
+local Library = {}
+Library.__index = Library
+
+function Library:CreateWindow(title)
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 450, 0, 300)
+    MainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Parent = ScreenGui
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 30)
+    Title.Text = title
+    Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 14
+    Title.Parent = MainFrame
+
+    local TabContainer = Instance.new("Frame")
+    TabContainer.Size = UDim2.new(1, 0, 0, 30)
+    TabContainer.Position = UDim2.new(0, 0, 0, 30)
+    TabContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    TabContainer.Parent = MainFrame
+
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Size = UDim2.new(1, 0, 1, -60)
+    ContentFrame.Position = UDim2.new(0, 0, 0, 60)
+    ContentFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    ContentFrame.Parent = MainFrame
+
+    local UIListLayout = Instance.new("UIListLayout")
+    UIListLayout.Parent = ContentFrame
+
+    local Tabs = {}
+
+    function Library:CreateTab(tabName)
+        local TabButton = Instance.new("TextButton")
+        TabButton.Size = UDim2.new(0, 100, 1, 0)
+        TabButton.Text = tabName
+        TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TabButton.Parent = TabContainer
+
+        local TabContent = Instance.new("Frame")
+        TabContent.Size = UDim2.new(1, 0, 1, 0)
+        TabContent.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        TabContent.Visible = false
+        TabContent.Parent = ContentFrame
+
+        Tabs[tabName] = TabContent
+
+        TabButton.MouseButton1Click:Connect(function()
+            for _, tab in pairs(Tabs) do
+                tab.Visible = false
+            end
+            TabContent.Visible = true
+        end)
+
+        return {
+            AddToggle = function(name, callback)
+                local Toggle = Instance.new("TextButton")
+                Toggle.Size = UDim2.new(1, -10, 0, 30)
+                Toggle.Text = name .. " [OFF]"
+                Toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                Toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+                Toggle.Parent = TabContent
+
+                local state = false
+                Toggle.MouseButton1Click:Connect(function()
+                    state = not state
+                    Toggle.Text = name .. (state and " [ON]" or " [OFF]")
+                    callback(state)
+                end)
+            end,
+
+            AddSlider = function(name, min, max, callback)
+                local Slider = Instance.new("TextLabel")
+                Slider.Size = UDim2.new(1, -10, 0, 30)
+                Slider.Text = name .. ": " .. min
+                Slider.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                Slider.TextColor3 = Color3.fromRGB(255, 255, 255)
+                Slider.Parent = TabContent
+
+                local SliderButton = Instance.new("TextButton")
+                SliderButton.Size = UDim2.new(0.2, 0, 1, 0)
+                SliderButton.Position = UDim2.new(0.8, 0, 0, 0)
+                SliderButton.Text = "Adjust"
+                SliderButton.Parent = Slider
+
+                SliderButton.MouseButton1Click:Connect(function()
+                    for i = min, max do
+                        Slider.Text = name .. ": " .. i
+                        callback(i)
+                        wait(0.1)
+                    end
+                end)
+            end,
+
+            AddDropdown = function(name, options, callback)
+                local Dropdown = Instance.new("TextButton")
+                Dropdown.Size = UDim2.new(1, -10, 0, 30)
+                Dropdown.Text = name
+                Dropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                Dropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
+                Dropdown.Parent = TabContent
+
+                local DropFrame = Instance.new("Frame")
+                DropFrame.Size = UDim2.new(1, -10, 0, 0)
+                DropFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                DropFrame.Parent = Dropdown
+                DropFrame.Visible = false
+
+                Dropdown.MouseButton1Click:Connect(function()
+                    DropFrame.Visible = not DropFrame.Visible
+                end)
+
+                for _, option in pairs(options) do
+                    local OptionButton = Instance.new("TextButton")
+                    OptionButton.Size = UDim2.new(1, 0, 0, 30)
+                    OptionButton.Text = option
+                    OptionButton.Parent = DropFrame
+
+                    OptionButton.MouseButton1Click:Connect(function()
+                        Dropdown.Text = name .. ": " .. option
+                        DropFrame.Visible = false
+                        callback(option)
+                    end)
+                end
+            end,
+
+            AddColorPicker = function(name, callback)
+                local ColorPick = Instance.new("TextButton")
+                ColorPick.Size = UDim2.new(1, -10, 0, 30)
+                ColorPick.Text = name
+                ColorPick.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                ColorPick.TextColor3 = Color3.fromRGB(255, 255, 255)
+                ColorPick.Parent = TabContent
+
+                ColorPick.MouseButton1Click:Connect(function()
+                    local color = Color3.fromRGB(math.random(0, 255), math.random(0, 255), math.random(0, 255))
+                    ColorPick.BackgroundColor3 = color
+                    callback(color)
+                end)
+            end
+        }
+    end
+
+    return Library
+end
+
+return Library
