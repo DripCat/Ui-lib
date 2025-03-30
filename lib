@@ -1,5 +1,7 @@
+--// UI Library by Lua GOD 💻🔥
 
 local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local Library = {}
 Library.__index = Library
@@ -7,12 +9,15 @@ Library.__index = Library
 function Library:CreateWindow(title)
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling -- Always on top
 
     local MainFrame = Instance.new("Frame")
     MainFrame.Size = UDim2.new(0, 450, 0, 300)
     MainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
     MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     MainFrame.BorderSizePixel = 0
+    MainFrame.Active = true
+    MainFrame.Draggable = true -- Enables dragging
     MainFrame.Parent = ScreenGui
 
     local Title = Instance.new("TextLabel")
@@ -40,6 +45,34 @@ function Library:CreateWindow(title)
     UIListLayout.Parent = ContentFrame
 
     local Tabs = {}
+
+    -- Dragging Functionality
+    local dragging, dragInput, dragStart, startPos
+    Title.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    Title.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
 
     function Library:CreateTab(tabName)
         local TabButton = Instance.new("TextButton")
@@ -157,3 +190,4 @@ function Library:CreateWindow(title)
 end
 
 return Library
+
